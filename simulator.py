@@ -3,8 +3,8 @@ from body import Body
 import matplotlib.pyplot as plt
 
 # ========== Constants ==========
-time_step = 0.0001
-i = 50000
+time_step = 0.01
+i = 1000
 n = 2
 G = 6.6743 * (10**-11)
 
@@ -53,6 +53,14 @@ def plot_history(history, iterations):
     plt.xlim(-5,5)
     plt.show()
 
-nbodies = initialize()
-history = run_nbody(nbodies, i, time_step)
-plot_history(history, i)
+def simulate(ts  = 0.01, iterations = 1000):
+    global time_step
+    time_step = ts
+    global i
+    i = iterations
+    nbodies = initialize()
+    history = run_nbody(nbodies, i, time_step)
+    # plot_history(history, i)
+    print('done')
+    return history
+    
