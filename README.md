@@ -7,5 +7,5 @@ by Jason Zhang (@Zjjc123) and Christine Ye (@Christine8888)
 - matplotlib
 
 ## Renders
-### Basic Two Body System
-![](./docs/two-body.gif)
+### Basic Two Body System With Energy Graph
+![](./docs/two-body-energy-graph.gif)
