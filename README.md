@@ -9,3 +9,6 @@ by Jason Zhang (@Zjjc123) and Christine Ye (@Christine8888)
 ## Renders
 ### Basic Two Body System With Energy Graph
 ![](./docs/two-body-energy-graph.gif)
+
+## Developmental Update
+Check out the Wiki for more progression [updates](https://github.com/Zjjc123/NosajSimulator/wiki/Updates)
