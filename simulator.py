@@ -3,7 +3,7 @@ from body import Body
 import matplotlib.pyplot as plt
 
 # ========== Constants ==========
-time_step = 0.01
+time_step = 0.1
 n = 2
 G = 6.6743 * (10**-11)
 
@@ -34,11 +34,12 @@ def update(nbodies, timestep):
                 
                 forces[i] += (p2 - p1) * G * m1 * m2 / np.sum((p1 - p2)**2)**(3/2)
                 energies[i] +=  -G * m1 * m2 / np.sqrt(np.sum((p1 - p2)**2))
-                
+                 
         nbodies[i].position += (nbodies[i].velocity * timestep) + (0.5 * forces[i] * timestep**2 / m1)
+        nbodies[i].ke = 0.5 * m1 * np.sqrt(np.sum(nbodies[i].velocity ** 2))**2
         nbodies[i].velocity += forces[i] * timestep / m1
         nbodies[i].gpe = energies[i]
-        nbodies[i].ke = 0.5 * nbodies[i].mass * np.sqrt(np.sum(nbodies[i].velocity ** 2))**2
+        
         
 def run_nbody(nbodies, iterations, timestep):
     """
