@@ -11,10 +11,11 @@ rendering_size = [1280, 720]
 rendering_offset = [rendering_size[0]/2, rendering_size[1]/2]
 
 # timestep skipping
-skip = 10
+skip = 100
+trail_length = 40
 
 # screenshot
-ss = False
+ss = True
 
 # graph y-offset
 graphing_offset = 200
@@ -38,7 +39,7 @@ trail = []
 energy = []
 
 # use simulate.py to run nbody
-history = simulator.simulate(0.005, 10000)
+history = simulator.simulate(0.0001, 100000)
 
 # creating window
 window = pyglet.window.Window(width=rendering_size[0], height=rendering_size[1])
@@ -59,6 +60,19 @@ for i in range(history.shape[1]):
                             10, color=green, batch=n_batch)
     bodies.append(newbody)
 
+# instantiate trail
+for i in range(len(bodies)):
+        # for each particle in the trail length:
+        for j in range(trail_length):
+            # instantiate trail object
+            newbody = shapes.Circle(history[0,i,0] * rendering_multplier+rendering_offset[0],
+                                    history[0,i,1] * rendering_multplier+rendering_offset[1],
+                                    float(max(4, 10*((trail_length) - j)/((trail_length))) - 2),  # Jay Pog's big brained formula to normalize size from 4 - 10
+                                    color=green_light, 
+                                    batch=particle_batch)
+            trail.append(newbody)
+
+# instantiate labels
 label_ke = pyglet.text.Label('Total Kinetic Energy = %.2f' % 0, font_size = fontsize, x= rendering_size[0]/50, y=graphing_offset*0.1+fontsize*2, color=red + (255,), batch=text_batch, anchor_x='left')
 label_gpe = pyglet.text.Label('Total Gravitational Potential Energy = %.2f' % 0, font_size = fontsize, x= rendering_size[0]/50, y=graphing_offset*0.1+fontsize, color=blue + (255,), batch=text_batch, anchor_x='left')
 label_sum = pyglet.text.Label('Total Energy = %.2f' % 0, font_size = fontsize, x= rendering_size[0]/50, y=graphing_offset*0.1, color=white + (255,), batch=text_batch, anchor_x='left')
@@ -88,24 +102,21 @@ def update(dt, skip):
     
     # python global variables. make a list to hold new objects
     global trail
-    trail = []
-    particles = min((skip*40), count+1) # trail length
+    particles = min((skip*trail_length), count+1) # trail length
     
     # PARTICLES
     # for each body:
     for i in range(len(bodies)):
         # for each particle in the trail length:
-        for j in range(particles):
-            # plot every N points
-            if j % skip == 0:
+        for j in range(trail_length):
+            if skip*j < count:
                 # instantiate trail object
-                newbody = shapes.Circle(history[count-j-1,i,0] * rendering_multplier+rendering_offset[0],
-                                        history[count-j-1,i,1] * rendering_multplier+rendering_offset[1],
-                                        float(max(4, 10*(particles - j)/(particles)) - 2),  # Jay Pog's big brained formula to normalize size from 4 - 10
-                                        color=green_light, 
-                                        batch=particle_batch)
-                trail.append(newbody)
-                
+                trail[j+i*trail_length].position = (history[count-(j*skip),i,0] * rendering_multplier+rendering_offset[0],
+                                        history[count-(j*skip),i,1] * rendering_multplier+rendering_offset[1])
+            else:
+                trail[j+i*trail_length].position = (history[count,i,0]*rendering_multplier+rendering_offset[0], 
+                            history[count,i,1] * rendering_multplier+rendering_offset[1])
+
     global energy
     energy = []
     

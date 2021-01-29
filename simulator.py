@@ -3,7 +3,6 @@ from body import Body
 import matplotlib.pyplot as plt
 
 # ========== Constants ==========
-time_step = 0.1
 n = 2
 G = 6.6743 * (10**-11)
 
