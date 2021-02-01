@@ -1,22 +1,13 @@
 import numpy as np 
 from body import Body
 import matplotlib.pyplot as plt
-
-# ========== Constants ==========
-n = 2
-G = 6.6743 * (10**-11)
+from init import *
+from constants import *
 
 # ========== Functions ==========
-def initialize(): 
-    nbodies = np.empty(n,dtype=object)
-    #masses = np.random.rand(n) * (10**10)
-    #positions = np.random.rand(n, 3) * 2 - 1
-    #velocities = np.random.rand(n, 3) * 1.0 - 0.5
-    masses = np.array([10**11,10**11],dtype='float64')
-    positions = np.array([[0,0,0],[1,1,0]],dtype='float64')
-    velocities = np.array([[np.sqrt(masses[0]*G)/np.sqrt(4),0,0],[-np.sqrt(masses[0]*G)/np.sqrt(4),0,0]],dtype='float64')
-    for i in range(n):
-        nbodies[i] = Body(masses[i], positions[i], velocities[i])
+def initialize(ic = InitialCondition.SIMPLE_TWO_BODY, N=2): 
+    if ic == InitialCondition.SIMPLE_TWO_BODY:
+        return simple_two_body()
     
     return nbodies
 
@@ -66,12 +57,12 @@ def plot_history(history, iterations):
     plt.xlim(-5,5)
     plt.show()
 
-def simulate(ts  = 0.01, iterations = 1000):
+def simulate(ts  = 0.01, iterations = 1000, ic = InitialCondition.SIMPLE_TWO_BODY, N=2):
     global time_step
     time_step = ts
     global i
     i = iterations
-    nbodies = initialize()
+    nbodies = initialize(ic = InitialCondition.SIMPLE_TWO_BODY, N=2)
     history = run_nbody(nbodies, i, time_step)
     # plot_history(history, i)
     print('Simulated!')

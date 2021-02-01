@@ -1,6 +1,8 @@
 import pyglet
 import numpy as np
 from pyglet import shapes
+from init import *
+from constants import *
 
 import simulator
 
@@ -15,7 +17,7 @@ skip = 100
 trail_length = 40
 
 # screenshot
-ss = True
+ss = False
 
 # graph y-offset
 graphing_offset = 200
@@ -39,7 +41,7 @@ trail = []
 energy = []
 
 # use simulate.py to run nbody
-history = simulator.simulate(0.0001, 100000)
+history = simulator.simulate(0.0001, 100000, ic = InitialCondition.SIMPLE_TWO_BODY, N=2)
 
 # creating window
 window = pyglet.window.Window(width=rendering_size[0], height=rendering_size[1])
@@ -118,55 +120,43 @@ def update(dt, skip):
                             history[count,i,1] * rendering_multplier+rendering_offset[1])
 
     global energy
-    energy = []
     
     # GRAPH
     # for each past timestep:
     current_kesum = 0
     current_gpesum = 0
-
-    for i in range(count):
-        kesum = 0
-        gpesum = 0
+  
+    # add up gpe and ke
+    for j in range(len(bodies)):
+        current_gpesum += history[count, j, 3]
+        current_kesum += history[count, j, 4]
         
-        # for each skipped timestep:
-        if i % skip == 0:    
-            # add up gpe and ke
-            for j in range(len(bodies)):
-                gpesum += history[i, j, 3]
-                kesum += history[i, j, 4]
-                
-            gpesum /= 2 # to avoid double counting energy for the AB system vs. BC system
-            
-            #instantiate graph points
-            ke_point = shapes.Circle((i/history.shape[0])*rendering_size[0], graphing_offset+(kesum*50/history.shape[1]),
-                                    4, 
-                                    color=red, 
-                                    batch=graph_batch)
-            gpe_point = shapes.Circle((i/history.shape[0])*rendering_size[0], graphing_offset+(gpesum*50/history.shape[1]),
-                                    4, 
-                                    color=blue, 
-                                    batch=graph_batch)
-            sum_point = shapes.Circle((i/history.shape[0])*rendering_size[0], graphing_offset+((gpesum+kesum)*50/history.shape[1]),
-                                    4, 
-                                    color=white, 
-                                    batch=graph_batch)
-            
-            # add to list of graph point objects
-            energy.append(ke_point)
-            energy.append(gpe_point)
-            energy.append(sum_point)
-
-            current_kesum = kesum
-            current_gpesum = gpesum
+    current_gpesum /= 2 # to avoid double counting energy for the AB system vs. BC system
+    
+    #instantiate graph points
+    ke_point = shapes.Circle((count/history.shape[0])*rendering_size[0], graphing_offset+(current_kesum*50/history.shape[1]),
+                            4, 
+                            color=red, 
+                            batch=graph_batch)
+    gpe_point = shapes.Circle((count/history.shape[0])*rendering_size[0], graphing_offset+(current_gpesum*50/history.shape[1]),
+                            4, 
+                            color=blue, 
+                            batch=graph_batch)
+    sum_point = shapes.Circle((count/history.shape[0])*rendering_size[0], graphing_offset+((current_gpesum+current_kesum)*50/history.shape[1]),
+                            4, 
+                            color=white, 
+                            batch=graph_batch)
+    
+    # add to list of graph point objects
+    energy.append(ke_point)
+    energy.append(gpe_point)
+    energy.append(sum_point)
     
     # update labels
-    if count % (skip) == 0:
-        #print(i)
-        #print('Total Kinetic Energy = %.2f' % current_kesum)
-        label_ke.text = 'Total Kinetic Energy = %.4f' % current_kesum
-        label_gpe.text = 'Total Gravitational Potential Energy = %.4f' % current_gpesum
-        label_sum.text = 'Total Energy = %.4f' % (current_gpesum+current_kesum)
+    #print('Total Kinetic Energy = %.2f' % current_kesum)
+    label_ke.text = 'Total Kinetic Energy = %.4f' % current_kesum
+    label_gpe.text = 'Total Gravitational Potential Energy = %.4f' % current_gpesum
+    label_sum.text = 'Total Energy = %.4f' % (current_gpesum+current_kesum)
 
     count += skip
     
