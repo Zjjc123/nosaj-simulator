@@ -2,12 +2,13 @@ import pyglet
 import numpy as np
 from pyglet import shapes
 from init import *
+
 from constants import *
 
 import simulator
 
 # render scale
-rendering_multplier = 200
+rendering_multiplier = 200
 # window size
 rendering_size = [1280, 720]
 rendering_offset = [rendering_size[0]/2, rendering_size[1]/2]
@@ -22,11 +23,7 @@ ss = False
 # graph y-offset
 graphing_offset = 200
 
-red = (231, 76, 60)
-green = (0, 255, 0)
-green_light = (0, 150, 0)
-blue = (52, 152, 219)
-white = (255, 255, 255)
+# graph key font size
 fontsize = 20
 
 # render batches
@@ -41,13 +38,16 @@ trail = []
 energy = []
 
 # use simulate.py to run nbody
-history = simulator.simulate(0.0001, 100000, ic = InitialCondition.SIMPLE_TWO_BODY, N=2)
+history = simulator.simulate(0.00001, 10000, InitialCondition.SUN_EARTH_MOON)
 
 # creating window
 window = pyglet.window.Window(width=rendering_size[0], height=rendering_size[1])
 
 # normalize energy by total energy (min-max normalization)
 total_energy = history[:,:,3] + history[:,:,4]
+history[:,:,0] = history[:,:,0]/(np.max(history[:,:,0])-np.min(history[:,:,0]))
+history[:,:,1] = history[:,:,1]/(np.max(history[:,:,1])-np.min(history[:,:,1]))
+history[:,:,2] = history[:,:,2]/(np.max(history[:,:,2])-np.min(history[:,:,2]))
 history[:,:,3] = history[:,:,3]/(np.max(total_energy)-np.min(total_energy))
 history[:,:,4] = history[:,:,4]/(np.max(total_energy)-np.min(total_energy))
 
@@ -55,20 +55,23 @@ history[:,:,4] = history[:,:,4]/(np.max(total_energy)-np.min(total_energy))
 count = 0
 
 # generate objects for each body
+colors = [red, green, blue]
 for i in range(history.shape[1]):
     # instantiate new n body circle
-    newbody = shapes.Circle(history[0,i,0] * rendering_multplier+rendering_offset[0],
-                            history[0,i,1] * rendering_multplier+rendering_offset[1],
-                            10, color=green, batch=n_batch)
+    newbody = shapes.Circle(history[0,i,0] * rendering_multiplier+rendering_offset[0],
+                            history[0,i,1] * rendering_multiplier+rendering_offset[1],
+                            10, color=colors[i], batch=n_batch)
+    # print(history[0,i,0] * rendering_multiplier+rendering_offset[0], history[0,i,1] * rendering_multiplier+rendering_offset[1])
     bodies.append(newbody)
 
 # instantiate trail
+
 for i in range(len(bodies)):
         # for each particle in the trail length:
         for j in range(trail_length):
             # instantiate trail object
-            newbody = shapes.Circle(history[0,i,0] * rendering_multplier+rendering_offset[0],
-                                    history[0,i,1] * rendering_multplier+rendering_offset[1],
+            newbody = shapes.Circle(history[0,i,0] * rendering_multiplier+rendering_offset[0],
+                                    history[0,i,1] * rendering_multiplier+rendering_offset[1],
                                     float(max(4, 10*((trail_length) - j)/((trail_length))) - 2),  # Jay Pog's big brained formula to normalize size from 4 - 10
                                     color=green_light, 
                                     batch=particle_batch)
@@ -99,8 +102,9 @@ def update(dt, skip):
     # for each body:
     for i in range(len(bodies)):
         # update position of body objects
-        bodies[i].position = (history[count,i,0]*rendering_multplier+rendering_offset[0], 
-                                history[count,i,1] * rendering_multplier+rendering_offset[1])
+        bodies[i].position = (history[count,i,0]*rendering_multiplier+rendering_offset[0], 
+                                history[count,i,1] * rendering_multiplier+rendering_offset[1])
+        #print(bodies[i].position)
     
     # python global variables. make a list to hold new objects
     global trail
@@ -113,11 +117,11 @@ def update(dt, skip):
         for j in range(trail_length):
             if skip*j < count:
                 # instantiate trail object
-                trail[j+i*trail_length].position = (history[count-(j*skip),i,0] * rendering_multplier+rendering_offset[0],
-                                        history[count-(j*skip),i,1] * rendering_multplier+rendering_offset[1])
+                trail[j+i*trail_length].position = (history[count-(j*skip),i,0] * rendering_multiplier+rendering_offset[0],
+                                        history[count-(j*skip),i,1] * rendering_multiplier+rendering_offset[1])
             else:
-                trail[j+i*trail_length].position = (history[count,i,0]*rendering_multplier+rendering_offset[0], 
-                            history[count,i,1] * rendering_multplier+rendering_offset[1])
+                trail[j+i*trail_length].position = (history[count,i,0]*rendering_multiplier+rendering_offset[0], 
+                            history[count,i,1] * rendering_multiplier+rendering_offset[1])
 
     global energy
     
