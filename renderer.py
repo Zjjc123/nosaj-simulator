@@ -7,6 +7,16 @@ from constants import *
 from colors import distinct_colors
 import simulator
 
+import argparse
+parser = argparse.ArgumentParser()
+
+parser.add_argument('--iterations', help='number of iterations to run for', type=int, default=10000)
+parser.add_argument('--timestep', help='length of timestep', type=float, default=-1)
+parser.add_argument('--trail_length', help='length of trail', type=float, default=40)
+parser.add_argument('--skip', help='# timesteps to skip when rendering', type=int, default=100)
+
+parsed = parser.parse_args()
+
 from prompt_toolkit.validation import Validator, ValidationError
 from PyInquirer import prompt, print_json
 
@@ -29,24 +39,6 @@ class FloatValidator(Validator):
                 cursor_position=len(document.text))  # Move cursor to end
 
 questions = [
-    {
-        'type': 'input',
-        'name': 'iterations',
-        'message': 'Number of iterations to run for?',
-        'validate': IntValidator,
-    },
-    {
-        'type': 'input',
-        'name': 'timestep',
-        'message': 'Length of timestep?',
-        'validate': FloatValidator,
-    },
-    {
-        'type': 'input',
-        'name': 'trail_length',
-        'message': 'Trail length?',
-        'validate': IntValidator,
-    },
     {
         'type': 'confirm',
         'name': 'ss',
@@ -104,11 +96,6 @@ if (args['init'] == True):
 else:
     args['nrand'] = prompt(rand_question)['rand']
 
-args['iterations'] = int(args['iterations'])
-args['timestep'] = float(args['timestep'])
-args['trail_length'] = int(args['trail_length'])
-
-print(args)
 
 initial = InitialCondition(args['ic'])
 
@@ -119,6 +106,8 @@ if initial == InitialCondition.SUN_EARTH_MOON:
 if initial == InitialCondition.SOLAR_SYSTEM:
     settings = solar_system(True)
 
+if parsed.timestep == -1:
+    parsed.timestep = settings['timestep']
 
 # window size
 rendering_size = [1920, 1080]
@@ -128,8 +117,8 @@ rendering_offset = [rendering_size[0]/2, rendering_size[1]/2]
 rendering_multiplier = settings['multiplier'] * (rendering_size[0]/1280)
 
 # timestep skipping
-skip = 100
-trail_length = args['trail_length']
+skip = parsed.skip
+trail_length = parsed.trail_length
 plot_energy = args['plot_energy']
 
 # screenshot
@@ -153,7 +142,7 @@ trail = []
 energy = []
 
 # use simulate.py to run nbody
-history, nbodies = simulator.simulate(args['timestep'], args['iterations'], initial)
+history, nbodies = simulator.simulate(parsed.timestep, parsed.iterations, initial)
 
 # creating window
 window = pyglet.window.Window(width=rendering_size[0], height=rendering_size[1])

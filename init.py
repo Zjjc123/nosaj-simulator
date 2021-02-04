@@ -23,7 +23,7 @@ def simple_two_body(render = False):
             
         return nbodies
     else:
-        return {'multiplier': 200, 'sizes':[10,10]}
+        return {'timestep':0.0001, 'multiplier': 200, 'sizes':[10,10]}
 
 def sun_earth_moon(render = False):
     #timestep of 100 or 1000
@@ -37,7 +37,7 @@ def sun_earth_moon(render = False):
 
         return nbodies
     else:
-       return {'multiplier': 1000, 'sizes':[30, 10, 4]} 
+       return {'timestep':1000, 'multiplier': 1000, 'sizes':[30, 10, 4]} 
 
 def solar_system(render = False):
     masses = np.array([SUN_MASS, MERCURY_MASS, VENUS_MASS, EARTH_MASS, MARS_MASS, JUPITER_MASS, SATURN_MASS, URANUS_MASS, NEPTUNE_MASS],dtype='float64')
@@ -56,7 +56,7 @@ def solar_system(render = False):
                 sizes.append(12)
             else:
                 sizes.append(np.max([5, 8*np.log10(masses[i])/np.log10(masses[0])]))
-        return {'multiplier': 1000, 'sizes':sizes} 
+        return {'timestep':1000, multiplier: 1000, 'sizes':sizes} 
 
 def random(n, total_mass, z=False):
     mass = total_mass*np.ones((N,1))/N *10**10
