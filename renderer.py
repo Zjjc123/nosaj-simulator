@@ -54,15 +54,18 @@ window = pyglet.window.Window(width=rendering_size[0], height=rendering_size[1])
 window.set_visible(False)
 
 def run_nbody(parsed, args):
-    initial = InitialCondition(args['ic'])
-
     global settings
-    if initial == InitialCondition.SIMPLE_TWO_BODY:
-        settings = simple_two_body(True)
-    if initial == InitialCondition.SUN_EARTH_MOON:
-        settings = sun_earth_moon(True)
-    if initial == InitialCondition.SOLAR_SYSTEM:
-        settings = solar_system(True)
+    if args['init']:
+        initial = InitialCondition(args['ic'])
+        if initial == InitialCondition.SIMPLE_TWO_BODY:
+            settings = simple_two_body(True)
+        if initial == InitialCondition.SUN_EARTH_MOON:
+            settings = sun_earth_moon(True)
+        if initial == InitialCondition.SOLAR_SYSTEM:
+            settings = solar_system(True)
+    else:
+        initial = InitialCondition.RANDOM
+        settings = random(n=args['nrand'],render=True)
 
     if parsed.timestep == -1:
         parsed.timestep = settings['timestep']
@@ -86,7 +89,7 @@ def run_nbody(parsed, args):
 
     # use simulate.py to run nbody
     global history
-    history, nbodies = simulator.simulate(parsed.timestep, parsed.iterations, initial)
+    history, nbodies = simulator.simulate(parsed.timestep, parsed.iterations, initial, args)
 
     global window
     window.set_visible()
@@ -154,7 +157,6 @@ def update(dt, skip):
     # N BODIES
     # for each body:
     global bodies
-    #print(bodies)
     for i in range(len(bodies)):
         # update position of body objects
         bodies[i].position = (history[count,i,0]*rendering_multiplier+rendering_offset[0], 

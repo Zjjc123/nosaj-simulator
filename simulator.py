@@ -7,21 +7,21 @@ from init import *
 from constants import *
 
 # ========== Functions ==========
-def initialize(ic = InitialCondition.SIMPLE_TWO_BODY, *args): 
+def initialize(ic = InitialCondition.SIMPLE_TWO_BODY, args=None): 
     if ic == InitialCondition.SIMPLE_TWO_BODY:
         return simple_two_body()
     if ic == InitialCondition.SUN_EARTH_MOON:
         return sun_earth_moon()
     if ic == InitialCondition.SOLAR_SYSTEM:
         return solar_system()
-    return nbodies
+    if ic == InitialCondition.RANDOM:
+        return random(args['nrand'])
 
 def update(nbodies, timestep):
     forces = np.zeros((nbodies.shape[0],3))
     energies = np.zeros(nbodies.shape[0])
     for i in range(nbodies.shape[0]):
         m1 = nbodies[i].mass
-        #print(m1)
         p1 = nbodies[i].position
         for j in range(nbodies.shape[0]):
             if i != j:
@@ -33,12 +33,7 @@ def update(nbodies, timestep):
         nbodies[i].position += (nbodies[i].velocity * timestep) + (0.5 * forces[i] * timestep**2 / m1)
         nbodies[i].ke = 0.5 * m1 * np.sqrt(np.sum(nbodies[i].velocity ** 2))**2
         nbodies[i].velocity += forces[i] * timestep / m1
-        #if i==1:
-            #print(nbodies[i].position)
         nbodies[i].gpe = energies[i]
-    #for i in range(nbodies.shape[0]):
-        #print(i,forces[i])
-        
         
 def run_nbody(nbodies, iterations, timestep):
     """
@@ -70,12 +65,12 @@ def plot_history(history, iterations):
     plt.xlim(-5,5)
     plt.show()
 
-def simulate(ts  = 0.01, iterations = 1000, ic = InitialCondition.SIMPLE_TWO_BODY):
+def simulate(ts  = 0.01, iterations = 1000, ic = InitialCondition.SIMPLE_TWO_BODY, args=None):
     global time_step
     time_step = ts
     global i
     i = iterations
-    nbodies = initialize(ic)
+    nbodies = initialize(ic, args)
     history = run_nbody(nbodies, i, time_step)
     # plot_history(history, i)
     print('Simulated!')

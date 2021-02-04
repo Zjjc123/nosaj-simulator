@@ -58,21 +58,27 @@ def solar_system(render = False):
                 sizes.append(np.max([5, 8*np.log10(masses[i])/np.log10(masses[0])]))
         return {'timestep':1000, multiplier: 1000, 'sizes':sizes} 
 
-def random(n, total_mass, z=False):
-    mass = total_mass*np.ones((N,1))/N *10**10
-    pos  = np.random.randn(N,3)
-    vel  = np.random.randn(N,3)
-        
-    vel -= np.mean(mass * vel,0) / np.mean(mass)
-    if z:
-        nbodies = np.empty(n,dtype=object)
-        for i in range(n):
-            nbodies[i] = Body(mass[i], pos[i], vel[i])
-        return nbodies
+def random(n=2, render = False, z=False):
+    if not render:
+        mass = np.ones((n,1))  *10**11
+        pos  = np.random.randn(n,3)
+        vel  = np.random.randn(n,3)*10
+            
+        vel -= np.mean(mass * vel,0) / np.mean(mass)
+        if z:
+            nbodies = np.empty(n,dtype=object)
+            for i in range(n):
+                nbodies[i] = Body(mass[i], pos[i], vel[i])
+            return nbodies
+        else:
+            pos[:,2] = 0
+            vel[:,2] = 0
+            nbodies = np.empty(n,dtype=object)
+            for i in range(n):
+                nbodies[i] = Body(mass[i], pos[i], vel[i])
+            return nbodies
     else:
-        pos[:,2] = 0
-        vel[:,2] = 0
-        nbodies = np.empty(n,dtype=object)
+        sizes = []
         for i in range(n):
-            nbodies[i] = Body(mass[i], pos[i], vel[i])
-        return nbodies
+            sizes.append(10)
+        return {'timestep':0.00001, 'multiplier': 200, 'sizes':sizes}

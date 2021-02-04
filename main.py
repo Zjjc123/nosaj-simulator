@@ -77,8 +77,9 @@ ic_question = [
 rand_question = [
     {
         'type': 'input',
-        'name': 'rand',
+        'name': 'nrand',
         'message': 'How many particles?',
+        'validate': IntValidator,
     }
 ]
 
@@ -87,6 +88,7 @@ args = prompt(questions)
 if (args['init'] == True):
     args['ic'] = prompt(ic_question)['ic']
 else:
-    args['nrand'] = prompt(rand_question)['rand']
+    args['nrand'] = int(prompt(rand_question)['nrand'])
+    #print(args)
 
 run_nbody(parsed, args)
