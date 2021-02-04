@@ -1,6 +1,8 @@
 import numpy as np 
 from body import Body
 import matplotlib.pyplot as plt
+from progress.bar import Bar
+
 from init import *
 from constants import *
 
@@ -10,6 +12,8 @@ def initialize(ic = InitialCondition.SIMPLE_TWO_BODY, *args):
         return simple_two_body()
     if ic == InitialCondition.SUN_EARTH_MOON:
         return sun_earth_moon()
+    if ic == InitialCondition.SOLAR_SYSTEM:
+        return solar_system()
     return nbodies
 
 def update(nbodies, timestep):
@@ -17,6 +21,7 @@ def update(nbodies, timestep):
     energies = np.zeros(nbodies.shape[0])
     for i in range(nbodies.shape[0]):
         m1 = nbodies[i].mass
+        #print(m1)
         p1 = nbodies[i].position
         for j in range(nbodies.shape[0]):
             if i != j:
@@ -25,13 +30,14 @@ def update(nbodies, timestep):
                 
                 forces[i] += (p2 - p1) * G * m1 * m2 / np.sum((p1 - p2)**2)**(3/2)
                 energies[i] +=  -G * m1 * m2 / np.sqrt(np.sum((p1 - p2)**2))
-                 
         nbodies[i].position += (nbodies[i].velocity * timestep) + (0.5 * forces[i] * timestep**2 / m1)
         nbodies[i].ke = 0.5 * m1 * np.sqrt(np.sum(nbodies[i].velocity ** 2))**2
         nbodies[i].velocity += forces[i] * timestep / m1
-        print(nbodies[i].position)
+        #if i==1:
+            #print(nbodies[i].position)
         nbodies[i].gpe = energies[i]
-    #print(forces)
+    #for i in range(nbodies.shape[0]):
+        #print(i,forces[i])
         
         
 def run_nbody(nbodies, iterations, timestep):
@@ -42,6 +48,8 @@ def run_nbody(nbodies, iterations, timestep):
     3: GPE
     4: KE
     """
+    bar = Bar('Simulating', max=iterations)
+
     history = np.zeros((iterations,nbodies.shape[0],5)) 
     for i in range(iterations):
         update(nbodies, timestep)
@@ -49,6 +57,8 @@ def run_nbody(nbodies, iterations, timestep):
             history[i, j, :3] = nbodies[j].position
             history[i, j, 3] = nbodies[j].gpe
             history[i, j, 4] = nbodies[j].ke
+        bar.next()
+    bar.finish()
     return history
 
 def plot_history(history, iterations):
@@ -69,5 +79,5 @@ def simulate(ts  = 0.01, iterations = 1000, ic = InitialCondition.SIMPLE_TWO_BOD
     history = run_nbody(nbodies, i, time_step)
     # plot_history(history, i)
     print('Simulated!')
-    return history
+    return history, nbodies
     

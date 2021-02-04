@@ -4,18 +4,133 @@ from pyglet import shapes
 from init import *
 
 from constants import *
-
+from colors import distinct_colors
 import simulator
 
-# render scale
-rendering_multiplier = 200
+from prompt_toolkit.validation import Validator, ValidationError
+from PyInquirer import prompt, print_json
+
+class IntValidator(Validator):
+    def validate(self, document):
+        try:
+            int(document.text)
+        except ValueError:
+            raise ValidationError(
+                message='Please enter an int',
+                cursor_position=len(document.text))  # Move cursor to end
+
+class FloatValidator(Validator):
+    def validate(self, document):
+        try:
+            float(document.text)
+        except ValueError:
+            raise ValidationError(
+                message='Please enter a float',
+                cursor_position=len(document.text))  # Move cursor to end
+
+questions = [
+    {
+        'type': 'input',
+        'name': 'iterations',
+        'message': 'Number of iterations to run for?',
+        'validate': IntValidator,
+    },
+    {
+        'type': 'input',
+        'name': 'timestep',
+        'message': 'Length of timestep?',
+        'validate': FloatValidator,
+    },
+    {
+        'type': 'input',
+        'name': 'trail_length',
+        'message': 'Trail length?',
+        'validate': IntValidator,
+    },
+    {
+        'type': 'confirm',
+        'name': 'ss',
+        'message': 'Screenshot?',
+    },
+    {
+        'type': 'confirm',
+        'name': 'plot_energy',
+        'message': 'Plot energies?',
+    },
+    {
+        'type': 'confirm',
+        'name': 'init',
+        'message': 'Use a preset condition?',
+    }
+]
+
+ic_question = [
+    {
+        'type': 'list',
+        'name': 'ic',
+        'message': 'Preset Initial Condition?',
+        'choices': [
+            {
+                'key': 'two',
+                'name': 'Simple Two Body',
+                'value': 1
+            },
+            {
+                'key': 'sem',
+                'name': 'Sun Earth Moon',
+                'value': 2
+            },
+            {
+                'key': 'solar',
+                'name': 'Solar System',
+                'value': 3
+            }
+        ],
+    }
+]
+
+rand_question = [
+    {
+        'type': 'input',
+        'name': 'rand',
+        'message': 'How many particles?',
+    }
+]
+
+args = prompt(questions)
+
+if (args['init'] == True):
+    args['ic'] = prompt(ic_question)['ic']
+else:
+    args['nrand'] = prompt(rand_question)['rand']
+
+args['iterations'] = int(args['iterations'])
+args['timestep'] = float(args['timestep'])
+args['trail_length'] = int(args['trail_length'])
+
+print(args)
+
+initial = InitialCondition(args['ic'])
+
+if initial == InitialCondition.SIMPLE_TWO_BODY:
+    settings = simple_two_body(True)
+if initial == InitialCondition.SUN_EARTH_MOON:
+    settings = sun_earth_moon(True)
+if initial == InitialCondition.SOLAR_SYSTEM:
+    settings = solar_system(True)
+
+
 # window size
-rendering_size = [1280, 720]
+rendering_size = [1920, 1080]
 rendering_offset = [rendering_size[0]/2, rendering_size[1]/2]
+
+# render scale
+rendering_multiplier = settings['multiplier'] * (rendering_size[0]/1280)
 
 # timestep skipping
 skip = 100
-trail_length = 40
+trail_length = args['trail_length']
+plot_energy = args['plot_energy']
 
 # screenshot
 ss = False
@@ -38,49 +153,54 @@ trail = []
 energy = []
 
 # use simulate.py to run nbody
-history = simulator.simulate(0.00001, 10000, InitialCondition.SUN_EARTH_MOON)
+history, nbodies = simulator.simulate(args['timestep'], args['iterations'], initial)
 
 # creating window
 window = pyglet.window.Window(width=rendering_size[0], height=rendering_size[1])
 
 # normalize energy by total energy (min-max normalization)
 total_energy = history[:,:,3] + history[:,:,4]
-history[:,:,0] = history[:,:,0]/(np.max(history[:,:,0])-np.min(history[:,:,0]))
-history[:,:,1] = history[:,:,1]/(np.max(history[:,:,1])-np.min(history[:,:,1]))
-history[:,:,2] = history[:,:,2]/(np.max(history[:,:,2])-np.min(history[:,:,2]))
+total_distance = history[:,:,0] + history[:,:,1] + history[:,:,2]
+
+history[:,:,0] = history[:,:,0]/(np.max(total_distance)-np.min(total_distance))
+history[:,:,1] = history[:,:,1]/(np.max(total_distance)-np.min(total_distance))
+history[:,:,2] = history[:,:,2]/(np.max(total_distance)-np.min(total_distance))
 history[:,:,3] = history[:,:,3]/(np.max(total_energy)-np.min(total_energy))
 history[:,:,4] = history[:,:,4]/(np.max(total_energy)-np.min(total_energy))
 
 # set count, which tracks the number of timesteps rendered
 count = 0
 
+colors = distinct_colors(history.shape[1])
+sizes = settings['sizes']
 # generate objects for each body
-colors = [red, green, blue]
 for i in range(history.shape[1]):
     # instantiate new n body circle
+    #print(colors[i])
     newbody = shapes.Circle(history[0,i,0] * rendering_multiplier+rendering_offset[0],
                             history[0,i,1] * rendering_multiplier+rendering_offset[1],
-                            10, color=colors[i], batch=n_batch)
-    # print(history[0,i,0] * rendering_multiplier+rendering_offset[0], history[0,i,1] * rendering_multiplier+rendering_offset[1])
+                            float(sizes[i]), color=colors[i], batch=n_batch)
+    #print(float(max(8, 20*((np.log10(nbodies[i].mass))/(np.log10(nbodies[0].mass))))))
+
     bodies.append(newbody)
 
 # instantiate trail
-
 for i in range(len(bodies)):
         # for each particle in the trail length:
         for j in range(trail_length):
             # instantiate trail object
             newbody = shapes.Circle(history[0,i,0] * rendering_multiplier+rendering_offset[0],
                                     history[0,i,1] * rendering_multiplier+rendering_offset[1],
-                                    float(max(4, 10*((trail_length) - j)/((trail_length))) - 2),  # Jay Pog's big brained formula to normalize size from 4 - 10
-                                    color=green_light, 
+                                    float(max(4, sizes[i]*((trail_length) - j)/((trail_length))) - 2),  # Jay Pog's big brained formula to normalize size from 4 - 10
+                                    color=colors[i],
                                     batch=particle_batch)
+            newbody.opacity = 50
             trail.append(newbody)
 
 # instantiate labels
-label_ke = pyglet.text.Label('Total Kinetic Energy = %.2f' % 0, font_size = fontsize, x= rendering_size[0]/50, y=graphing_offset*0.1+fontsize*2, color=red + (255,), batch=text_batch, anchor_x='left')
-label_gpe = pyglet.text.Label('Total Gravitational Potential Energy = %.2f' % 0, font_size = fontsize, x= rendering_size[0]/50, y=graphing_offset*0.1+fontsize, color=blue + (255,), batch=text_batch, anchor_x='left')
-label_sum = pyglet.text.Label('Total Energy = %.2f' % 0, font_size = fontsize, x= rendering_size[0]/50, y=graphing_offset*0.1, color=white + (255,), batch=text_batch, anchor_x='left')
+label_ke = pyglet.text.Label('Total Kinetic Energy = %.2f' % 0, font_size = fontsize, x= rendering_size[0]/50, y=graphing_offset*0.1+fontsize*2, color=RED + (255,), batch=text_batch, anchor_x='left')
+label_gpe = pyglet.text.Label('Total Gravitational Potential Energy = %.2f' % 0, font_size = fontsize, x= rendering_size[0]/50, y=graphing_offset*0.1+fontsize, color=BLUE + (255,), batch=text_batch, anchor_x='left')
+label_sum = pyglet.text.Label('Total Energy = %.2f' % 0, font_size = fontsize, x= rendering_size[0]/50, y=graphing_offset*0.1, color=WHITE + (255,), batch=text_batch, anchor_x='left')
 
 # drawing function
 @window.event
@@ -91,8 +211,9 @@ def on_draw():
     # render batches
     particle_batch.draw()
     n_batch.draw()
-    graph_batch.draw()
-    text_batch.draw()
+    if plot_energy:
+        graph_batch.draw()
+        text_batch.draw()
 
 # update function
 def update(dt, skip):
@@ -104,7 +225,8 @@ def update(dt, skip):
         # update position of body objects
         bodies[i].position = (history[count,i,0]*rendering_multiplier+rendering_offset[0], 
                                 history[count,i,1] * rendering_multiplier+rendering_offset[1])
-        #print(bodies[i].position)
+        #if i==1:
+            #print(bodies[i].position)
     
     # python global variables. make a list to hold new objects
     global trail
@@ -140,15 +262,15 @@ def update(dt, skip):
     #instantiate graph points
     ke_point = shapes.Circle((count/history.shape[0])*rendering_size[0], graphing_offset+(current_kesum*50/history.shape[1]),
                             4, 
-                            color=red, 
+                            color=RED, 
                             batch=graph_batch)
     gpe_point = shapes.Circle((count/history.shape[0])*rendering_size[0], graphing_offset+(current_gpesum*50/history.shape[1]),
                             4, 
-                            color=blue, 
+                            color=BLUE, 
                             batch=graph_batch)
     sum_point = shapes.Circle((count/history.shape[0])*rendering_size[0], graphing_offset+((current_gpesum+current_kesum)*50/history.shape[1]),
                             4, 
-                            color=white, 
+                            color=WHITE, 
                             batch=graph_batch)
     
     # add to list of graph point objects
