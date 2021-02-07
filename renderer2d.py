@@ -53,7 +53,7 @@ count = 0
 window = pyglet.window.Window(width=rendering_size[0], height=rendering_size[1])
 window.set_visible(False)
 
-def run_nbody(parsed, args):
+def run_nbody2d(parsed, args):
     global settings
     if args['init']:
         initial = InitialCondition(args['ic'])

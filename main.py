@@ -1,5 +1,5 @@
 import argparse
-from renderer import *
+from renderer2d import *
 
 parser = argparse.ArgumentParser()
 
@@ -41,6 +41,12 @@ questions = [
         'type': 'confirm',
         'name': 'plot_energy',
         'message': 'Plot energies?',
+    },
+    {
+        'type': 'list',
+        'name': 'vis',
+        'message': 'Select visualization mode.',
+        'choices': ['2D', '3D']
     },
     {
         'type': 'confirm',
@@ -91,4 +97,7 @@ else:
     args['nrand'] = int(prompt(rand_question)['nrand'])
     #print(args)
 
-run_nbody(parsed, args)
+if(args['vis']=='2D'):
+    run_nbody2d(parsed, args)
+elif(args['vis']=='3D'):
+    run_nbody3d(parsed, args)
