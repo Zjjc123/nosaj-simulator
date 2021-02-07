@@ -6,7 +6,7 @@ from colors import distinct_colors
 import simulator
 
 from direct.showbase.ShowBase import ShowBase
-
+import panda3d
 from panda3d.core import Material
 from panda3d.core import AmbientLight, DirectionalLight
 from panda3d.core import LVector3
@@ -49,7 +49,12 @@ class Renderer(ShowBase):
         self.history[:,:,4] = self.history[:,:,4]/(np.max(total_energy)-np.min(total_energy))
 
         self.colors = distinct_colors(self.history.shape[1])
-
+        self.new_colors = []
+        for color in self.colors:
+            color_elements = []
+            for element in color:
+                color_elements.append(element/255.0)
+            self.new_colors.append(color_elements)
         #self.sizes = settings['sizes']
 
         # array storing bodies, trails, and energy graphics
@@ -67,8 +72,7 @@ class Renderer(ShowBase):
             m = Material()
             m.setSpecular((1, 1, 1, 1))
             m.setShininess(96)
-            sphere.setColor((*self.colors[i], 0.3))
-            print(self.colors[i])
+            sphere.setColor((*self.new_colors[i], 1))
             sphere.setMaterial(m, 1)
 
             self.bodies.append(sphere)
@@ -81,12 +85,14 @@ class Renderer(ShowBase):
                 sphere.reparentTo(self.render)
                 s = 2*((self.trail_length) - j)/self.trail_length
                 sphere.setScale(s,s,s)
-                sphere.setColor((*self.colors[i], 0.3))
                 sphere.setPos(self.history[0,i,0], self.history[0,i,1], self.history[0,i,2])
-
+                sphere.set_transparency(panda3d.core.TransparencyAttrib.M_alpha)
+                   
                 m = Material()
                 m.setSpecular((1, 1, 1, 1))
                 m.setShininess(96)
+                
+                sphere.setColor((*self.new_colors[i], 0.3))
                 sphere.setMaterial(m, 1)
 
                 self.trail.append(sphere)
@@ -117,7 +123,7 @@ class Renderer(ShowBase):
 
         return Task.cont
 
-app = Renderer(50, 40, 1000, 3000)
+app = Renderer(50, 40, 1000, 1000)
 app.run()
 
 '''
