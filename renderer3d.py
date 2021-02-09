@@ -26,8 +26,8 @@ class Renderer(ShowBase):
         base.setBackgroundColor(0,0,0)
 
         # event handler on left mouse click
-        self.accept("mouse1", self.setMouseClick, [True])
-        self.accept("mouse1-up", self.setMouseClick, [False])
+        self.accept("mouse1", self.set_mouse_click, [True])
+        self.accept("mouse1-up", self.set_mouse_click, [False])
 
         self.previous_mouse_x = 0
         self.previous_mouse_y = 0
@@ -38,8 +38,8 @@ class Renderer(ShowBase):
         self.drag_sensitivity = 90
 
         # event handler on scroll
-        self.accept("wheel_up", self.setScroll, [1])
-        self.accept("wheel_down", self.setScroll, [-1])
+        self.accept("wheel_up", self.set_scroll, [1])
+        self.accept("wheel_down", self.set_scroll, [-1])
 
         self.scroll_state = 0
 
@@ -203,13 +203,13 @@ class Renderer(ShowBase):
         return task.cont
 
     # set mouse click state (true = down, false = not down)
-    def setMouseClick(self, value):
+    def set_mouse_click(self, value):
         if not value:
             self.is_first_click = True
         self.is_mouse_clicked = value
 
     # set scroll state (0 = no movement, 1 = up, -1 = down)
-    def setScroll(self, value):
+    def set_scroll(self, value):
         self.scroll_state = value
 
 app = Renderer(50, 40, 0.0001, 40000)
