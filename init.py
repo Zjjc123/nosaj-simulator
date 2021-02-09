@@ -12,7 +12,6 @@ class InitialCondition(Enum):
     RANDOM = 4
 
 def simple_two_body(render = False):
-    # timestep of 0.00001
     if not render:
         nbodies = np.empty(2,dtype=object)
         masses = np.array([10**11,10**11],dtype='float64')
@@ -26,7 +25,6 @@ def simple_two_body(render = False):
         return {'timestep':0.0001, 'multiplier': 200, 'sizes':[10,10]}
 
 def sun_earth_moon(render = False):
-    #timestep of 100 or 1000
     if not render:
         nbodies = np.empty(3,dtype=object)
         masses = np.array([SUN_MASS, EARTH_MASS, MOON_MASS],dtype='float64') # SUN, EARTH, MOON

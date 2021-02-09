@@ -1,6 +1,7 @@
 import argparse
 from renderer2d import *
 
+## setup command line arguments
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--iterations', help='number of iterations to run for', type=int, default=10000)
@@ -10,6 +11,7 @@ parser.add_argument('--skip', help='# timesteps to skip when rendering', type=in
 
 parsed = parser.parse_args()
 
+## setup interactive arguments
 from prompt_toolkit.validation import Validator, ValidationError
 from PyInquirer import prompt, print_json
 
@@ -55,6 +57,7 @@ questions = [
     }
 ]
 
+# select initial conditions
 ic_question = [
     {
         'type': 'list',
@@ -80,6 +83,7 @@ ic_question = [
     }
 ]
 
+# random initialization
 rand_question = [
     {
         'type': 'input',
