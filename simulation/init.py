@@ -1,7 +1,7 @@
 import numpy as np 
-from body import Body
+from simulation.body import Body
 import matplotlib.pyplot as plt
-from constants import *
+from utils.constants import *
 
 from enum import Enum
 

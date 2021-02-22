@@ -1,10 +1,10 @@
 import numpy as np 
-from body import Body
+from simulation.body import Body
 import matplotlib.pyplot as plt
 from progress.bar import Bar
 
-from init import *
-from constants import *
+from simulation.init import *
+from utils.constants import *
 
 # ========== Functions ==========
 def initialize(ic = InitialCondition.SIMPLE_TWO_BODY, args=None): 

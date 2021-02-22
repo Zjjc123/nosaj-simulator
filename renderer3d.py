@@ -1,9 +1,9 @@
 import numpy as np
-from init import *
+from simulation.init import *
 
-from constants import *
-from colors import distinct_colors
-import simulator
+from utils.constants import *
+from utils.colors import distinct_colors
+from simulation import simulator
 
 from direct.showbase.ShowBase import ShowBase
 import panda3d

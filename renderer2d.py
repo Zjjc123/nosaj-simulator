@@ -1,11 +1,11 @@
 import pyglet
 import numpy as np
 from pyglet import shapes
-from init import *
+from simulation.init import *
 
-from constants import *
-from colors import distinct_colors
-import simulator
+from utils.constants import *
+from utils.colors import distinct_colors
+from simulation import simulator
 
 # global variables
 # window size
