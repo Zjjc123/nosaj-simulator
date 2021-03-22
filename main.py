@@ -4,10 +4,16 @@ from renderer2d import *
 ## setup command line arguments
 parser = argparse.ArgumentParser()
 
+# optional arguments
 parser.add_argument('--iterations', help='number of iterations to run for', type=int, default=10000)
 parser.add_argument('--timestep', help='length of timestep', type=float, default=-1)
 parser.add_argument('--trail_length', help='length of trail', type=float, default=40)
 parser.add_argument('--skip', help='# timesteps to skip when rendering', type=int, default=100)
+
+## optional skip CLI arguments (if invoked, cli will be skipped for faster simulating process)
+parser.add_argument('--ss', help='(t/f) screenshot?', type=bool, default=None)
+parser.add_argument('--plot', help='(t/f) plot energies?', type=bool, default=None)
+parser.add_argument('--ic', help='initial positions (1: two body, 2: sun earth moon, 3: solar syste) ', type=int, default=None)
 
 parsed = parser.parse_args()
 
@@ -93,14 +99,27 @@ rand_question = [
     }
 ]
 
-args = prompt(questions)
+args = {}
 
-if (args['init'] == True):
-    args['ic'] = prompt(ic_question)['ic']
+# if optional skip CLI option is triggered (short cut for testing)
+if (parsed.ss is not None or parsed.plot is not None or parsed.ic):
+    args = {'ss': (parsed.ss if parsed.ss is not None else False), 
+        'plot_energy': (parsed.plot if parsed.plot is not None else False), 
+        'ic': (parsed.ic if parsed.ic is not None else 1), 
+        'vis': '2D', 
+        'init': True}
+
+# go through CLI
 else:
-    args['nrand'] = int(prompt(rand_question)['nrand'])
-    #print(args)
+    args = prompt(questions)
 
+    if (args['init'] == True):
+        args['ic'] = prompt(ic_question)['ic']
+    else:
+        args['nrand'] = int(prompt(rand_question)['nrand'])
+        #print(args)
+
+# run 2D or 3D simulator
 if(args['vis']=='2D'):
     run_nbody2d(parsed, args)
 elif(args['vis']=='3D'):
