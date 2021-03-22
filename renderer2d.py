@@ -5,7 +5,8 @@ from simulation.init import *
 
 from utils.constants import *
 from utils.colors import distinct_colors
-from simulation import simulator
+#from simulation.simulator import simulate
+from simulation.barnes_hut.simulator_tree import simulate
 
 # global variables
 # window size
@@ -53,6 +54,7 @@ count = 0
 window = pyglet.window.Window(width=rendering_size[0], height=rendering_size[1])
 window.set_visible(False)
 
+
 def run_nbody2d(parsed, args):
     global settings
     if args['init']:
@@ -89,7 +91,7 @@ def run_nbody2d(parsed, args):
 
     # use simulate.py to run nbody
     global history
-    history, nbodies = simulator.simulate(parsed.timestep, parsed.iterations, initial, args)
+    history, nbodies = simulate(parsed.timestep, parsed.iterations, initial, args)
 
     global window
     window.set_visible()

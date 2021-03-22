@@ -6,7 +6,7 @@ from progress.bar import Bar
 from simulation.init import *
 from utils.constants import *
 
-# ========== Functions ==========
+# Initialize initial conditions
 def initialize(ic = InitialCondition.SIMPLE_TWO_BODY, args=None): 
     if ic == InitialCondition.SIMPLE_TWO_BODY:
         return simple_two_body()
@@ -17,24 +17,31 @@ def initialize(ic = InitialCondition.SIMPLE_TWO_BODY, args=None):
     if ic == InitialCondition.RANDOM:
         return random(args['nrand'])
 
+# Update function runs every timestep
 def update(nbodies, timestep):
+    # create empty forces and energy array
     forces = np.zeros((nbodies.shape[0],3))
     energies = np.zeros(nbodies.shape[0])
+    # for each of the body
     for i in range(nbodies.shape[0]):
         m1 = nbodies[i].mass
         p1 = nbodies[i].position
+        # calculate the forces and energy
         for j in range(nbodies.shape[0]):
             if i != j:
                 m2 = nbodies[j].mass
                 p2 = nbodies[j].position
                 
+                # newton's law of universal gravitation
                 forces[i] += (p2 - p1) * G * m1 * m2 / np.sum((p1 - p2)**2)**(3/2)
+                # energy = GMm/r
                 energies[i] +=  -G * m1 * m2 / np.sqrt(np.sum((p1 - p2)**2))
         nbodies[i].position += (nbodies[i].velocity * timestep) + (0.5 * forces[i] * timestep**2 / m1)
         nbodies[i].ke = 0.5 * m1 * np.sqrt(np.sum(nbodies[i].velocity ** 2))**2
         nbodies[i].velocity += forces[i] * timestep / m1
         nbodies[i].gpe = energies[i]
-        
+
+# function that runs the simulation
 def run_nbody(nbodies, iterations, timestep):
     """
     0: x
@@ -43,8 +50,11 @@ def run_nbody(nbodies, iterations, timestep):
     3: GPE
     4: KE
     """
+
+    # set up progress bar to keep progress
     bar = Bar('Simulating', max=iterations)
 
+    # history stories all information
     history = np.zeros((iterations,nbodies.shape[0],5)) 
     for i in range(iterations):
         update(nbodies, timestep)
@@ -56,6 +66,7 @@ def run_nbody(nbodies, iterations, timestep):
     bar.finish()
     return history
 
+# debug plot
 def plot_history(history, iterations):
     cmaps = ['terrain','rainbow','ocean']
     skip=10
@@ -65,7 +76,8 @@ def plot_history(history, iterations):
     plt.xlim(-5,5)
     plt.show()
 
-def simulate(ts  = 0.01, iterations = 1000, ic = InitialCondition.SIMPLE_TWO_BODY, args=None):
+# simulate function
+def simulate(ts = 0.01, iterations = 1000, ic = InitialCondition.SIMPLE_TWO_BODY, args=None):
     global time_step
     time_step = ts
     global i
